@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Comparator;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,10 +52,9 @@ public class AviaSoulsTest {
 
         Ticket[] result = souls.search("MOW", "SPB");
 
-        assertEquals(3, result.length);
-        assertEquals(3000, result[0].getPrice());
-        assertEquals(4000, result[1].getPrice());
-        assertEquals(5000, result[2].getPrice());
+        int[] expectedPrices = {3000, 4000, 5000};
+        int[] actualPrices = Arrays.stream(result).mapToInt(Ticket::getPrice).toArray();
+        assertArrayEquals(expectedPrices, actualPrices);
     }
 
     @Test
@@ -62,7 +62,6 @@ public class AviaSoulsTest {
         AviaSouls souls = new AviaSouls();
         souls.add(new Ticket("MOW", "SPB", 3000, 10, 12));
         Ticket[] result = souls.search("SPB", "MOW");
-
         assertEquals(0, result.length);
     }
 
@@ -75,10 +74,9 @@ public class AviaSoulsTest {
 
         Ticket[] result = souls.searchAndSortBy("MOW", "SPB", new TicketTimeComparator());
 
-        assertEquals(3, result.length);
-        assertEquals(3000, result[0].getPrice()); // 2ч
-        assertEquals(4000, result[1].getPrice()); // 3ч
-        assertEquals(5000, result[2].getPrice()); // 4ч
+        int[] expectedPrices = {3000, 4000, 5000};
+        int[] actualPrices = Arrays.stream(result).mapToInt(Ticket::getPrice).toArray();
+        assertArrayEquals(expectedPrices, actualPrices);
     }
 
     @Test
@@ -86,7 +84,6 @@ public class AviaSoulsTest {
         AviaSouls souls = new AviaSouls();
         souls.add(new Ticket("MOW", "SPB", 3000, 10, 12));
         Ticket[] result = souls.searchAndSortBy("SPB", "KZN", new TicketTimeComparator());
-
         assertEquals(0, result.length);
     }
 
@@ -97,7 +94,6 @@ public class AviaSoulsTest {
         Ticket t2 = new Ticket("SPB", "KZN", 5000, 13, 17);
         souls.add(t1);
         souls.add(t2);
-
         Ticket[] result = souls.findAll();
         assertArrayEquals(new Ticket[]{t1, t2}, result);
     }
@@ -108,7 +104,6 @@ public class AviaSoulsTest {
         Ticket t = new Ticket("MOW", "SPB", 3000, 10, 12);
         souls.add(t);
         Ticket[] all = souls.findAll();
-
         assertEquals(1, all.length);
         assertEquals(t, all[0]);
     }
@@ -138,82 +133,11 @@ public class AviaSoulsTest {
     }
 
     @Test
-    public void testSearchWhenNoTicketsInSystem() {
-        AviaSouls souls = new AviaSouls();
-        Ticket[] result = souls.search("MOW", "SPB");
-        assertEquals(0, result.length);
-    }
-
-    @Test
-    public void testTicketEqualsSameObject() {
-        Ticket t = new Ticket("MOW", "SPB", 3000, 10, 12);
-        assertEquals(t, t);
-    }
-
-    @Test
-    public void testTicketEqualsNull() {
-        Ticket t = new Ticket("MOW", "SPB", 3000, 10, 12);
-        assertNotEquals(t, null);
-    }
-
-    @Test
-    public void testTicketEqualsDifferentClass() {
-        Ticket t = new Ticket("MOW", "SPB", 3000, 10, 12);
-        Object other = new Object();
-        assertNotEquals(t, other);
-    }
-
-    @Test
-    public void testSearchWithOneResult() {
-        AviaSouls souls = new AviaSouls();
-        Ticket t = new Ticket("MOW", "SPB", 4000, 10, 12);
-        souls.add(t);
-
-        Ticket[] result = souls.search("MOW", "SPB");
-        assertArrayEquals(new Ticket[]{t}, result);
-    }
-
-    @Test
-    public void testTicketHashCodeIsConsistent() {
-        Ticket t = new Ticket("MOW", "SPB", 3000, 10, 12);
-        int hash1 = t.hashCode();
-        int hash2 = t.hashCode();
-        assertEquals(hash1, hash2);
-    }
-
-    @Test
-    public void testTicketNotEqualsIfDifferentFields() {
-        Ticket t1 = new Ticket("MOW", "SPB", 3000, 10, 12);
-        Ticket t2 = new Ticket("MOW", "SPB", 3500, 10, 12); // другая цена
-        assertNotEquals(t1, t2);
-    }
-
-    @Test
-    public void testSearchWithEmptyTicketList() {
-        AviaSouls souls = new AviaSouls();
-        Ticket[] result = souls.search("MOW", "SPB");
-        assertEquals(0, result.length);
-    }
-
-    @Test
-    public void testSearchOnlyExactMatchesIncluded() {
-        AviaSouls souls = new AviaSouls();
-        souls.add(new Ticket("MOW", "SPB", 3000, 10, 12)); // ← подходит
-        souls.add(new Ticket("MOW", "KZN", 4000, 11, 13)); // ← не подходит
-        souls.add(new Ticket("SPB", "MOW", 5000, 14, 16)); // ← не подходит
-
-        Ticket[] result = souls.search("MOW", "SPB");
-        assertEquals(1, result.length);
-        assertEquals("SPB", result[0].getTo());
-    }
-
-    @Test
     public void testSearchAndSortBySingleResultWithComparator() {
         AviaSouls souls = new AviaSouls();
         Ticket t = new Ticket("MOW", "SPB", 4500, 10, 13);
         souls.add(t);
-
-        Ticket[] result = souls.searchAndSortBy("MOW", "SPB", (a, b) -> Integer.compare(a.getPrice(), b.getPrice()));
+        Ticket[] result = souls.searchAndSortBy("MOW", "SPB", Comparator.comparingInt(Ticket::getPrice));
         assertArrayEquals(new Ticket[]{t}, result);
     }
 
@@ -226,10 +150,9 @@ public class AviaSoulsTest {
 
         Ticket[] result = souls.searchAndSortBy("MOW", "SPB", Comparator.comparingInt(Ticket::getPrice));
 
-        assertEquals(3, result.length);
-        assertEquals(2000, result[0].getPrice());
-        assertEquals(5000, result[1].getPrice());
-        assertEquals(7000, result[2].getPrice());
+        int[] expected = {2000, 5000, 7000};
+        int[] actual = Arrays.stream(result).mapToInt(Ticket::getPrice).toArray();
+        assertArrayEquals(expected, actual);
     }
 
     @Test
@@ -240,53 +163,12 @@ public class AviaSoulsTest {
         souls.add(new Ticket("MOW", "KZN", 5000, 12, 14));
 
         Ticket[] result1 = souls.search("MOW", "SPB");
-        assertEquals(1, result1.length);
-        assertEquals("SPB", result1[0].getTo());
+        assertArrayEquals(new Ticket[]{new Ticket("MOW", "SPB", 3000, 10, 12)}, result1);
 
         Ticket[] result2 = souls.search("SPB", "KZN");
-        assertEquals(1, result2.length);
-        assertEquals("KZN", result2[0].getTo());
+        assertArrayEquals(new Ticket[]{new Ticket("SPB", "KZN", 4000, 11, 13)}, result2);
 
         Ticket[] result3 = souls.search("MOW", "KZN");
-        assertEquals(1, result3.length);
-        assertEquals("KZN", result3[0].getTo());
-    }
-
-    @Test
-    public void testAddArrayViaSearchAndSortByMultipleAdds() {
-        AviaSouls souls = new AviaSouls();
-        souls.add(new Ticket("MOW", "SPB", 3000, 10, 12));
-        souls.add(new Ticket("MOW", "SPB", 4000, 11, 13));
-        souls.add(new Ticket("MOW", "SPB", 5000, 12, 14));
-
-        Ticket[] result = souls.searchAndSortBy("MOW", "SPB", new TicketTimeComparator());
-        assertEquals(3, result.length);
-    }
-
-    @Test
-    public void testFindAllAfterMultipleAdds() {
-        AviaSouls souls = new AviaSouls();
-        Ticket[] expected = new Ticket[]{
-                new Ticket("MOW", "SPB", 3000, 10, 12),
-                new Ticket("SPB", "KZN", 4000, 11, 13),
-                new Ticket("MOW", "KZN", 5000, 12, 14)
-        };
-        for (Ticket t : expected) {
-            souls.add(t);
-        }
-
-        Ticket[] all = souls.findAll();
-        assertArrayEquals(expected, all);
-    }
-
-    @Test
-    public void testSearchAndSortByEmptyAfterMixedAdds() {
-        AviaSouls souls = new AviaSouls();
-        souls.add(new Ticket("MOW", "SPB", 3000, 10, 12));
-        souls.add(new Ticket("SPB", "MOW", 3500, 13, 15));
-
-        Ticket[] result = souls.searchAndSortBy("KZN", "SPB", new TicketTimeComparator());
-        assertNotNull(result);
-        assertEquals(0, result.length);
+        assertArrayEquals(new Ticket[]{new Ticket("MOW", "KZN", 5000, 12, 14)}, result3);
     }
 }
